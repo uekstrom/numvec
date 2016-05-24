@@ -14,7 +14,8 @@ void f1(T &res, const T &x)
   u = 3/x;
   u += -y;
   u += 1.1*x;
-  res = sin(u);
+  y = sin(u);
+  res = pow(x,y);
 }
 
 void test_correctness()

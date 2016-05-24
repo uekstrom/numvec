@@ -6,10 +6,9 @@
 // By Ulf Ekstrom (uekstrom@gmail.com) 2016.
 // The idea is to be able to use a diciplined subset of the C++
 // math features without creating any temporaries. For example
-// u += 12*v; 
+// u += 12*v;
 // can be evaluated without creating a temporary vector. 
 // TODO: Complete the list of math functions
-// TODO: Implement pow(,)
 // TODO: Full coverage testing
 // TODO: Refactor the code to use better name space separation for
 //       the auxiliary templates and types.
@@ -368,6 +367,110 @@ numvec_delayed<numvec<T,len>,numvec_op_div_vv> numvec<T,len>::operator/(const nu
 }
 
 /// MATH FUNCTIONS BELOW THIS LINE
+
+// pow (only binary math function supported so far)
+
+struct numvec_op_pow_sv;
+
+template<typename T, int len>
+struct numvec_delayed<numvec<T,len>,numvec_op_pow_sv>	
+{
+  numvec_delayed(const T &left_, const numvec<T,len> &right_) : left(left_), right(right_) {}
+  const T left;
+  const numvec<T,len> &right;
+  void apply(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] = pow(left,right[i]);
+  }
+  void apply_addto(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] += pow(left,right[i]);
+  }
+};
+template<typename T, int len, typename S>
+numvec_delayed<numvec<T,len>,numvec_op_pow_sv> pow(const S &left, const numvec<T,len> &right)
+{
+  return numvec_delayed<numvec<T,len>,numvec_op_pow_sv>(left, right);
+}
+
+struct numvec_op_pow_vs;
+
+template<typename T, int len>
+struct numvec_delayed<numvec<T,len>,numvec_op_pow_vs>	
+{
+  numvec_delayed(const numvec<T,len> &left_, const T &right_) : left(left_), right(right_) {}
+  const numvec<T,len> &left;
+  const T &right;
+  void apply(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] = pow(left[i],right);
+  }
+  void apply_addto(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] += pow(left[i],right);
+  }
+};
+template<typename T, int len>
+numvec_delayed<numvec<T,len>,numvec_op_pow_vs> pow(const numvec<T,len> &left, const T &scalar)
+{
+  return numvec_delayed<numvec<T,len>,numvec_op_pow_vs>(left, scalar);
+}
+
+struct numvec_op_pow_vi;
+
+template<typename T, int len>
+struct numvec_delayed<numvec<T,len>,numvec_op_pow_vi>	
+{
+  numvec_delayed(const numvec<T,len> &left_, const T &right_) : left(left_), right(right_) {}
+  const numvec<T,len> &left;
+  int right;
+  void apply(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] = pow(left[i],right);
+  }
+  void apply_addto(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] += pow(left[i],right);
+  }
+};
+template<typename T, int len>
+numvec_delayed<numvec<T,len>,numvec_op_pow_vi> pow(const numvec<T,len> &left, int scalar)
+{
+  return numvec_delayed<numvec<T,len>,numvec_op_pow_vi>(left, scalar);
+}
+
+struct numvec_op_pow_vv;
+
+template<typename T, int len>
+struct numvec_delayed<numvec<T,len>,numvec_op_pow_vv>	
+{
+  numvec_delayed(const numvec<T,len> &left_, const numvec<T,len> &right_) : left(left_), right(right_) {}
+  const numvec<T,len> &left, &right;
+  void apply(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] = pow(left[i],right[i]);
+  }
+  void apply_addto(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] += pow(left[i],right[i]);
+  }
+};
+template<typename T, int len>
+numvec_delayed<numvec<T,len>,numvec_op_pow_vv> pow(const numvec<T,len> &left, const numvec<T,len> &right)
+{
+  return numvec_delayed<numvec<T,len>,numvec_op_pow_vv>(left, right);
+}
+
+
+// UNARY MATH FUNCTIONS
 
 #define NUMVEC_UNARY(FUN)\
 struct numvec_op_##FUN;\

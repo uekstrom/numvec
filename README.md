@@ -6,15 +6,23 @@ efficiently. All decisions on memory allocation must be handled by the programme
     numvec<double,32> x, tmp, result;
     for (int i=0;i<x.size();i++)
        x[i] = i; // Initialize the vector elements
+
 Assume we want to compute
+
     // result = pow(x,2)/7 + 3.14*x; 
+
 but we have to do it without vector temporaries
+
     result = pow(x,2);
     result /= 7;
     result += 3.14*x;
+
 It could be done without any use of temporary vectors, but if we want
+
     // result = pow(x,2)/7 + 3.14*exp(x);
+
 then one temporary is needed:
+
     result = pow(x,2);
     result /= 7;
     tmp = exp(x);

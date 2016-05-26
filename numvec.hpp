@@ -1,6 +1,9 @@
 #ifndef NUMVEC_HPP
 #define NUMVEC_HPP
 #include <cmath>
+#ifdef NUMVEC_USE_VML
+#include <mkl.h>
+#endif
 
 // Light weight fixed length vectors with some delayed operations
 // By Ulf Ekstrom (uekstrom@gmail.com) 2016.
@@ -36,6 +39,7 @@ template<typename T, int len>
 class numvec
 {
 public:
+  T c[len];
   numvec() {}
   numvec(const T &val) { *this = val; }
   int size() const { return len; }
@@ -86,9 +90,12 @@ public:
     from.apply_addto(*this);
     return *this;
   }
-
-private:
-  T c[len];
+  template<typename OP>
+  numvec &operator*=(const numvec_delayed<numvec<T,len>,OP> &from)
+  {
+    from.apply_multo(*this);
+    return *this;
+  }
 };
 
 // NEGATION
@@ -106,6 +113,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_neg>
   {
     for (int i=0;i<arg.size();i++)
       arg[i] -= right[i];
+  }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= -right[i];
   }
 };
 template<typename T, int len>
@@ -132,6 +144,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_add_sv>
   {
     for (int i=0;i<arg.size();i++)
       arg[i] += left + right[i];
+  }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= left + right[i];
   }
 };
 template<typename T, int len>
@@ -161,6 +178,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_add_vv>
     for (int i=0;i<arg.size();i++)
       arg[i] += left[i] + right[i];
   }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= left[i] + right[i];
+  }
 };
 template<typename T, int len>
 numvec_delayed<numvec<T,len>,numvec_op_add_vv> numvec<T,len>::operator+(const numvec<T,len> &right) const
@@ -187,6 +209,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_sub_sv>
     for (int i=0;i<arg.size();i++)
       arg[i] += left - right[i];
   }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= left - right[i];
+  }
 };
 template<typename T, int len, typename S>
 numvec_delayed<numvec<T,len>,numvec_op_sub_sv> operator-(const S &left, const numvec<T,len> &right)
@@ -211,6 +238,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_sub_vs>
     for (int i=0;i<arg.size();i++)
       arg[i] += left[i] - right;
   }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= left[i] - right;
+  }
 };
 template<typename T, int len>
 numvec_delayed<numvec<T,len>,numvec_op_sub_vs> numvec<T,len>::operator-(const T &scalar) const
@@ -233,6 +265,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_sub_vv>
   {
     for (int i=0;i<arg.size();i++)
       arg[i] += left[i] - right[i];
+  }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= left[i] - right[i];
   }
 };
 template<typename T, int len>
@@ -258,6 +295,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_mul_sv>
   {
     for (int i=0;i<arg.size();i++)
       arg[i] += left*right[i];
+  }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= left*right[i];
   }
 };
 template<typename T, int len>
@@ -287,6 +329,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_mul_vv>
     for (int i=0;i<arg.size();i++)
       arg[i] += left[i]*right[i];
   }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= left[i]*right[i];
+  }
 };
 template<typename T, int len>
 numvec_delayed<numvec<T,len>,numvec_op_mul_vv> numvec<T,len>::operator*(const numvec<T,len> &right) const
@@ -312,6 +359,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_div_sv>
     for (int i=0;i<arg.size();i++)
       arg[i] += left/right[i];
   }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= left/right[i];
+  }
 };
 template<typename T, int len, typename S>
 numvec_delayed<numvec<T,len>,numvec_op_div_sv> operator/(const S &left, const numvec<T,len> &right)
@@ -336,6 +388,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_div_vs>
     for (int i=0;i<arg.size();i++)
       arg[i] += left[i]/right;
   }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= left[i]/right;
+  }
 };
 template<typename T, int len>
 numvec_delayed<numvec<T,len>,numvec_op_div_vs> numvec<T,len>::operator/(const T &scalar) const
@@ -358,6 +415,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_div_vv>
   {
     for (int i=0;i<arg.size();i++)
       arg[i] += left[i]/right[i];
+  }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= left[i]/right[i];
   }
 };
 template<typename T, int len>
@@ -388,6 +450,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_pow_sv>
     for (int i=0;i<arg.size();i++)
       arg[i] += pow(left,right[i]);
   }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= pow(left,right[i]);
+  }
 };
 template<typename T, int len, typename S>
 numvec_delayed<numvec<T,len>,numvec_op_pow_sv> pow(const S &left, const numvec<T,len> &right)
@@ -403,15 +470,27 @@ struct numvec_delayed<numvec<T,len>,numvec_op_pow_vs>
   numvec_delayed(const numvec<T,len> &left_, const T &right_) : left(left_), right(right_) {}
   const numvec<T,len> &left;
   const T &right;
+#ifndef NUMVEC_USE_VML
   void apply(numvec<T,len> &arg) const
   {
     for (int i=0;i<arg.size();i++)
       arg[i] = pow(left[i],right);
   }
+#else
+  void apply(numvec<T,len> &arg) const
+  {
+    vdPowx(arg.size(),left.c, right, arg.c);
+  }
+#endif
   void apply_addto(numvec<T,len> &arg) const
   {
     for (int i=0;i<arg.size();i++)
       arg[i] += pow(left[i],right);
+  }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= pow(left[i],right);
   }
 };
 template<typename T, int len>
@@ -428,15 +507,27 @@ struct numvec_delayed<numvec<T,len>,numvec_op_pow_vi>
   numvec_delayed(const numvec<T,len> &left_, const T &right_) : left(left_), right(right_) {}
   const numvec<T,len> &left;
   int right;
+#ifndef NUMVEC_USE_VML
   void apply(numvec<T,len> &arg) const
   {
     for (int i=0;i<arg.size();i++)
       arg[i] = pow(left[i],right);
   }
+#else
+  void apply(numvec<T,len> &arg) const
+  {
+    vdPowx(arg.size(),left.c, right, arg.c);
+  }
+#endif
   void apply_addto(numvec<T,len> &arg) const
   {
     for (int i=0;i<arg.size();i++)
       arg[i] += pow(left[i],right);
+  }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= pow(left[i],right);
   }
 };
 template<typename T, int len>
@@ -461,6 +552,11 @@ struct numvec_delayed<numvec<T,len>,numvec_op_pow_vv>
   {
     for (int i=0;i<arg.size();i++)
       arg[i] += pow(left[i],right[i]);
+  }
+  void apply_multo(numvec<T,len> &arg) const
+  {
+    for (int i=0;i<arg.size();i++)
+      arg[i] *= pow(left[i],right[i]);
   }
 };
 template<typename T, int len>
@@ -488,6 +584,11 @@ struct numvec_delayed<S,numvec_op_##FUN>\
   {\
     for (int i=0;i<arg.size();i++)\
       arg[i] += FUN(val[i]);\
+  }\
+  void apply_multo(S &arg) const\
+  {\
+    for (int i=0;i<arg.size();i++)\
+      arg[i] *= FUN(val[i]);\
   }\
 };\
 template<typename T, int len>\

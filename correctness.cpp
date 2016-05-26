@@ -16,6 +16,8 @@ void f1(T &res, const T &x)
   u += 1.1*x;
   y = sin(u);
   res = pow(x,y);
+  y = pow(res,1.2);
+  res = pow(y,3);
 }
 
 void test_correctness()
@@ -31,7 +33,6 @@ void test_correctness()
       double outd;
       f1(outd,inp[i]);
       sumres += fabs(out[i] - outd);
-      cout << outd << " " << out[i] << endl;
     }
   cout.precision(15);
   cout << "Sum of absolute differences " << sumres << endl;
